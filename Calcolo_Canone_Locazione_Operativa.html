@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0b3d63">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Preventivo Noleggio Operativo</title>
+<style>
+  :root{
+    --blue:#0b3d63;
+    --blue-light:#e8f1f8;
+    --accent:#c8860a;
+    --grey:#6b7280;
+    --border:#d8dee5;
+    --bg:#f4f6f8;
+    --green:#1e7d4b;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:#1c2530;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:960px;margin:0 auto;padding:12px 12px 60px;}
+  header.top{
+    background:linear-gradient(135deg,var(--blue),#124e7d);
+    color:#fff;
+    padding:20px 16px;
+    border-radius:0 0 14px 14px;
+    margin-bottom:16px;
+  }
+  header.top h1{margin:0 0 4px;font-size:1.25rem;line-height:1.3;}
+  header.top p{margin:0;font-size:.85rem;opacity:.85;}
+  .card{
+    background:#fff;
+    border:1px solid var(--border);
+    border-radius:12px;
+    padding:16px;
+    margin-bottom:16px;
+    box-shadow:0 1px 2px rgba(0,0,0,.04);
+  }
+  .card h2{
+    font-size:1rem;
+    margin:0 0 12px;
+    color:var(--blue);
+    display:flex;align-items:center;gap:8px;
+  }
+  .card.flash-loaded{animation:flashLoaded 1.4s ease-out;}
+  @keyframes flashLoaded{
+    0%{box-shadow:0 0 0 3px rgba(11,61,99,.55);}
+    100%{box-shadow:0 1px 2px rgba(0,0,0,.04);}
+  }
+  .card h2 .num{
+    background:var(--blue);color:#fff;
+    width:22px;height:22px;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;
+    font-size:.75rem;flex:none;
+  }
+  .grid{display:grid;grid-template-columns:1fr;gap:12px;}
+  @media(min-width:640px){.grid.cols2{grid-template-columns:1fr 1fr;}}
+  @media(min-width:640px){.grid.cols3{grid-template-columns:1fr 1fr 1fr;}}
+  label{display:block;font-size:.78rem;font-weight:600;color:#333;margin-bottom:5px;}
+  input[type=text],input[type=number],select,textarea,input[type=date]{
+    width:100%;
+    padding:10px 11px;
+    border:1px solid var(--border);
+    border-radius:8px;
+    font-size:1rem;
+    background:#fbfcfd;
+  }
+  input:focus,select:focus,textarea:focus{outline:2px solid var(--blue);outline-offset:1px;}
+  .field{margin-bottom:2px;}
+  .hint{font-size:.72rem;color:var(--grey);margin-top:4px;}
+  .prov-options{display:flex;gap:8px;flex-wrap:wrap;}
+  .prov-btn{
+    flex:1;min-width:64px;
+    text-align:center;
+    padding:10px 6px;
+    border:1.5px solid var(--border);
+    border-radius:9px;
+    cursor:pointer;
+    font-weight:700;
+    font-size:.95rem;
+    background:#fbfcfd;
+    user-select:none;
+  }
+  .prov-btn.active{
+    border-color:var(--blue);
+    background:var(--blue-light);
+    color:var(--blue);
+  }
+  .period-toggle{display:flex;border:1.5px solid var(--border);border-radius:9px;overflow:hidden;}
+  .period-toggle div{
+    flex:1;text-align:center;padding:10px 6px;cursor:pointer;font-weight:700;font-size:.9rem;
+    background:#fbfcfd;
+  }
+  .period-toggle div.active{background:var(--blue);color:#fff;}
+
+  table.rates{width:100%;border-collapse:collapse;font-size:.76rem;}
+  table.rates th,table.rates td{padding:5px 5px;text-align:right;border-bottom:1px solid var(--border);line-height:1.2;}
+  table.rates th:first-child,table.rates td:first-child{text-align:left;}
+  table.rates thead th{
+    background:var(--blue-light);color:var(--blue);font-size:.62rem;text-transform:uppercase;letter-spacing:.02em;padding:6px 5px;
+  }
+  table.rates tbody tr:hover{background:#fafcff;}
+  table.rates tbody tr.selected{background:#fff6e6;}
+  table.rates td.pick{text-align:center;padding:3px;}
+  .radiopick{transform:scale(1);cursor:pointer;}
+  .canone-val{font-weight:700;color:var(--blue);}
+  .foot-note{font-size:.66rem;color:var(--grey);margin-top:6px;}
+
+  .scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+  #resultsCard{padding:12px;}
+  .period-badge{
+    display:inline-block;background:var(--blue);color:#fff;
+    font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em;
+    padding:4px 10px;border-radius:20px;margin-bottom:8px;
+  }
+
+  .summary{
+    background:var(--blue-light);
+    border:1px solid #bcd7ea;
+    border-radius:9px;
+    padding:10px 12px;
+    margin-top:10px;
+  }
+  .summary .row{display:flex;justify-content:space-between;padding:2px 0;font-size:.82rem;}
+  .summary .row.total{font-weight:800;font-size:.92rem;border-top:1px dashed #9fc2dc;margin-top:4px;padding-top:6px;color:var(--blue);}
+
+  .info-list{font-size:.82rem;color:#333;line-height:1.55;margin:0;padding-left:0;list-style:none;}
+  .info-list li{padding:5px 0;border-bottom:1px dotted var(--border);display:flex;justify-content:space-between;gap:10px;}
+  .info-list li:last-child{border-bottom:none;}
+  .info-list li span.lbl{color:var(--grey);}
+  .info-list li span.val{font-weight:700;text-align:right;}
+
+  .warn{
+    background:#fdecec;border:1px solid #f2b8b8;color:#8a2020;
+    border-radius:9px;padding:12px 14px;font-size:.85rem;font-weight:600;
+  }
+
+  .highlight-grid{display:grid;grid-template-columns:1fr;gap:8px;margin-top:8px;}
+  @media(min-width:640px){.highlight-grid{grid-template-columns:1fr 1fr;}}
+  .highlight-box{
+    border-radius:9px;padding:8px 10px;
+    border:1.5px solid;
+  }
+  .highlight-box.istruttoria,.highlight-box.incasso{background:#fff6e6;border-color:#e9c47a;}
+  .highlight-box .hb-label{font-size:.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.02em;margin-bottom:3px;}
+  .highlight-box.istruttoria .hb-label,.highlight-box.incasso .hb-label{color:#8a6106;}
+  .highlight-box .hb-value{font-size:1rem;font-weight:800;}
+  .highlight-box.istruttoria .hb-value,.highlight-box.incasso .hb-value{color:#8a6106;}
+
+  .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px;}
+  button.primary{
+    background:var(--blue);color:#fff;border:none;border-radius:9px;
+    padding:13px 20px;font-size:.95rem;font-weight:700;cursor:pointer;flex:1;min-width:160px;
+  }
+  button.secondary{
+    background:#fff;color:var(--blue);border:1.5px solid var(--blue);border-radius:9px;
+    padding:13px 20px;font-size:.95rem;font-weight:700;cursor:pointer;flex:1;min-width:160px;
+  }
+  button.accentbtn{
+    background:var(--accent);color:#fff;border:none;border-radius:9px;
+    padding:13px 20px;font-size:.95rem;font-weight:700;cursor:pointer;flex:1;min-width:160px;
+  }
+  button:active{transform:translateY(1px);}
+
+  footer.legal{font-size:.7rem;color:var(--grey);text-align:center;margin-top:20px;line-height:1.5;}
+
+  .disclaimer{
+    background:#fbfbfb;border:1px solid var(--border);border-radius:9px;
+    padding:10px 14px;margin-bottom:16px;
+    font-size:.7rem;color:#555;line-height:1.5;
+  }
+  .disclaimer strong{color:#333;}
+
+  .archive-list{max-height:280px;overflow-y:auto;-webkit-overflow-scrolling:touch;margin-top:10px;}
+  .archive-item{
+    border:1px solid var(--border);border-radius:9px;padding:9px 11px;margin-bottom:7px;
+    display:flex;justify-content:space-between;align-items:center;gap:8px;background:#fbfcfd;
+  }
+  .archive-item .ai-info{flex:1;min-width:0;}
+  .archive-item .ai-title{font-weight:700;font-size:.85rem;color:var(--blue);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .archive-item .ai-sub{font-size:.7rem;color:var(--grey);margin-top:2px;}
+  .archive-item .ai-actions{display:flex;gap:6px;flex:none;}
+  .archive-item button{border:none;border-radius:7px;padding:7px 9px;font-size:.72rem;font-weight:700;cursor:pointer;}
+  .archive-item button.open-btn{background:var(--blue);color:#fff;}
+  .archive-item button.del-btn{background:#fdecec;color:#8a2020;}
+  .archive-empty{font-size:.8rem;color:var(--grey);text-align:center;padding:14px 0;}
+  .archive-toolbar{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;}
+  .archive-toolbar button{font-size:.72rem;padding:8px 11px;border-radius:7px;border:1px solid var(--border);background:#fff;cursor:pointer;font-weight:600;color:#333;}
+
+  .print-only{display:none;}
+
+  /* ---- PRINT / PDF layout ---- */
+  @media print{
+    body{background:#fff;}
+    .no-print{display:none !important;}
+    .print-only{display:block !important;}
+    .wrap{max-width:100%;padding:0;}
+    header.top{background:#0b3d63 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;border-radius:0;}
+    .period-badge{background:#0b3d63 !important;color:#fff !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .card{box-shadow:none;border:1px solid #ccc;page-break-inside:avoid;}
+    table.rates thead th{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    tr.selected{background:#fff6e6 !important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    @page{size:A4;margin:14mm;}
+
+    body.printing-cliente #paramsCard{display:none !important;}
+    body.printing-cliente .totale-cell{display:none !important;}
+    body.printing-cliente .impegno-row{display:none !important;}
+  }
+</style>
+</head>
+<body>
+<noscript>
+  <div style="max-width:640px;margin:20px auto;padding:16px 18px;background:#fdecec;border:1px solid #f2b8b8;color:#8a2020;border-radius:9px;font-family:sans-serif;font-size:15px;line-height:1.5;">
+    <strong>Questo tool non è interattivo in questa anteprima.</strong><br><br>
+    Probabilmente il file è aperto in un'anteprima rapida (es. Quick Look su iPhone/iPad, o l'anteprima di un allegato email) che non esegue JavaScript.<br><br>
+    Per usarlo, aprilo direttamente in <strong>Safari</strong> o <strong>Chrome</strong>: nell'app File tieni premuto sul file → Condividi → Safari (se non compare, tocca "Altro"). Se arriva da un'email, tocca l'allegato, poi l'icona di condivisione in basso e scegli il browser (oppure salva prima il file in File e riapri da lì).
+  </div>
+</noscript>
+<div class="wrap">
+
+  <header class="top">
+    <h1 class="no-print">Calcolo Canone Locazione Operativa</h1>
+    <p class="no-print">Strumento ad uso rete commerciale &middot; validità listino dal 15/04/2026</p>
+    <h1 class="print-only" style="font-size:1.1rem;">Canone Locazione Operativa &middot; validità dal 15/04/2026</h1>
+  </header>
+
+  <div class="disclaimer no-print">
+    <strong>Disclaimer:</strong> Il presente strumento è ad uso esclusivo dei destinatari autorizzati da Geco Finance. È vietata la diffusione, copia, pubblicazione o condivisione del presente tool, dei contenuti in esso riportati a soggetti terzi non espressamente autorizzati. I dati e i calcoli hanno valore puramente indicativo e non costituiscono offerta contrattuale.
+  </div>
+
+  <!-- ARCHIVIO PREVENTIVI -->
+  <div class="card no-print">
+    <h2><span class="num">A</span> Archivio Preventivi</h2>
+    <input type="text" id="archiveSearch" placeholder="Cerca per nome cliente o fornitore...">
+    <div class="archive-list" id="archiveList"></div>
+    <div class="archive-toolbar">
+      <button type="button" onclick="esportaArchivio()">Esporta backup (.json)</button>
+      <button type="button" onclick="document.getElementById('importFile').click()">Importa backup (.json)</button>
+      <button type="button" onclick="svuotaArchivio()">Svuota archivio</button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" onchange="importaArchivio(this)">
+    </div>
+    <div class="hint">L'archivio registra automaticamente un preventivo solo quando viene stampato (per Fornitore o per Cliente), non ad ogni modifica. È salvato in locale sul browser di questo dispositivo: usa "Esporta/Importa" per fare un backup o per trasferirlo su un altro PC o telefono.</div>
+  </div>
+
+  <!-- CLIENT DATA -->
+  <div class="card" id="datiPreventivoCard">
+    <h2><span class="num">1</span> Dati preventivo</h2>
+    <div class="grid cols2">
+      <div class="field">
+        <label>Cliente / Ragione sociale</label>
+        <input type="text" id="clienteNome" placeholder="Es. Rossi Impianti Srl">
+      </div>
+      <div class="field">
+        <label>Referente cliente</label>
+        <input type="text" id="clienteRef" placeholder="Es. Mario Rossi">
+      </div>
+      <div class="field">
+        <label>Fornitore</label>
+        <input type="text" id="agente" placeholder="Nome e cognome">
+      </div>
+      <div class="field">
+        <label>Data preventivo</label>
+        <input type="date" id="dataPrev">
+      </div>
+      <div class="field" style="grid-column:1/-1;">
+        <label>Descrizione bene noleggiato</label>
+        <input type="text" id="descrBene" placeholder="Es. Macchinario / attrezzatura / impianto...">
+      </div>
+    </div>
+  </div>
+
+  <!-- INPUTS -->
+  <div class="card" id="paramsCard">
+    <h2 class="no-print"><span class="num">2</span> Parametri di calcolo</h2>
+    <div class="field">
+      <label>Valore contratto &ndash; IVA esclusa (min &euro;1.000, max &euro;250.000)</label>
+      <input type="number" id="valore" value="10000" min="1000" max="250000" step="100">
+      <div class="hint">Per importi superiori a &euro;250.000 richiedere offerta ad hoc.</div>
+    </div>
+
+    <div class="field" style="margin-top:14px;">
+      <label>Periodicità canone</label>
+      <div class="period-toggle" id="periodToggle">
+        <div data-v="MENSILE" class="active">Mensile</div>
+        <div data-v="TRIMESTRALE">Trimestrale</div>
+      </div>
+    </div>
+
+    <div class="field no-print" style="margin-top:14px;">
+      <label>Provvigione agente</label>
+      <div class="prov-options" id="provOptions">
+        <div class="prov-btn" data-v="2">2%</div>
+        <div class="prov-btn active" data-v="3">3%</div>
+        <div class="prov-btn" data-v="4">4%</div>
+        <div class="prov-btn" data-v="5">5%</div>
+      </div>
+      <div class="hint">La provvigione incide sul canone proposto al cliente: parametro riservato, non stampato nel preventivo.</div>
+    </div>
+  </div>
+
+  <!-- OUT OF RANGE WARNING -->
+  <div class="card warn no-print" id="warnBox" style="display:none;"></div>
+
+  <!-- RESULTS -->
+  <div class="card" id="resultsCard">
+    <h2 class="no-print"><span class="num">3</span> Canone per durata &mdash; seleziona la proposta</h2>
+    <div class="period-badge" id="periodBadge"></div>
+    <div class="scroll-x">
+      <table class="rates" id="ratesTable">
+        <thead>
+          <tr>
+            <th class="no-print">Scegli</th>
+            <th>Durata</th>
+            <th>N. Canoni Posticipati</th>
+            <th id="canoneHeader">Canone (IVA escl.)</th>
+            <th class="totale-cell">Totale spesa cliente</th>
+          </tr>
+        </thead>
+        <tbody id="ratesBody"></tbody>
+      </table>
+    </div>
+    <div class="foot-note">* Durata 72 mesi disponibile solo per determinate tipologie di beni. Valori espressi in Euro, IVA esclusa.</div>
+
+    <div class="summary" id="summaryBox"></div>
+
+    <div class="highlight-grid">
+      <div class="highlight-box istruttoria">
+        <div class="hb-label">Costi di Istruttoria</div>
+        <div class="hb-value" id="boxIstruttoria"></div>
+      </div>
+      <div class="highlight-box incasso">
+        <div class="hb-label">Costi Incasso Canone</div>
+        <div class="hb-value" id="boxIncasso"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADDITIONAL CONDITIONS -->
+  <div class="card">
+    <h2 class="no-print"><span class="num">4</span> Condizioni economiche accessorie</h2>
+    <ul class="info-list" id="infoList"></ul>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions no-print">
+    <button class="primary" onclick="stampaFornitore()">Stampa per Fornitore</button>
+    <button class="accentbtn" onclick="stampaCliente()">Stampa per Cliente</button>
+    <button class="secondary" id="resetBtn">Azzera campi</button>
+  </div>
+
+  <footer class="legal no-print">
+    Simulazione indicativa generata sulla base del listino in vigore dal 15/04/2026. Non costituisce offerta contrattuale.<br>
+    Documento riservato ad uso della rete commerciale.
+  </footer>
+  <footer class="legal print-only">
+    Simulazione indicativa con validità 30 giorni.<br>
+    Documento riservato ad uso della rete commerciale.
+  </footer>
+</div>
+
+<script>
+// Coefficienti estratti dal file Excel Geco Finance
+const RATES_COEFFS = {
+  "mensile": {
+    "2": [
+      {"18":0.05947487880369797,"24":0.04541862027254652,"30":0.03699852072639574,"36":0.031388124514360814,"42":0.027386036996782395,"48":0.024387108849703316,"60":0.02020303071493517,"72":0.01742949252392606},
+      {"18":0.05934043742793043,"24":0.04527977006489727,"30":0.03685456701706817,"36":0.03124801648621199,"42":0.02724494501612897,"48":0.024249653456896416,"60":0.020063241697876003,"72":0.01728231043056321},
+      {"18":0.059146031570637,"24":0.045095015344668365,"30":0.03667392559425142,"36":0.031061773386427335,"42":0.027057483628666005,"48":0.024060803380821442,"60":0.019866571067234284,"72":0.017087187605420183},
+      {"18":0.05909979720766352,"24":0.04504889435848153,"30":0.036627690188001785,"36":0.031015314042380494,"42":0.02700606434778573,"48":0.024013725698840183,"60":0.019818773819097347,"72":0.017038607246023022},
+      {"18":0.05895659966434236,"24":0.04490609146812083,"30":0.0364845756090711,"36":0.030876179616530233,"42":0.02687077883654608,"48":0.023868127978158703,"60":0.019675785427863315,"72":0.016888518297119456}
+    ],
+    "3": [
+      {"18":0.06006098134618981,"24":0.045869234430400294,"30":0.03736216283157674,"36":0.031697644976582375,"42":0.027655281270541874,"48":0.024629938252244424,"60":0.020406481505083094,"72":0.017602112771109738},
+      {"18":0.059921141649692124,"24":0.04572959771162166,"30":0.037222057417311376,"36":0.03155673533334128,"42":0.02751338285141367,"48":0.02448692806980906,"60":0.02026103914866092,"72":0.01745409275245518},
+      {"18":0.05949807558010001,"24":0.04530752062647516,"30":0.03679893023583567,"36":0.031131538492628133,"42":0.02709023478149338,"48":0.02405609318433632,"60":0.019823550520275533,"72":0.01700949754341489},
+      {"18":0.059683832138925065,"24":0.045497410114551426,"30":0.03698922358789656,"36":0.031322695382655155,"42":0.02727782847536238,"48":0.024249653456896416,"60":0.02001516926055603,"72":0.017204107547991915},
+      {"18":0.05953984254417803,"24":0.04535379320880713,"30":0.03684529083812586,"36":0.0311780992743939,"42":0.0271323774452751,"48":0.02410321942643781,"60":0.019871354487000007,"72":0.01705802976357279}
+    ],
+    "4": [
+      {"18":0.06065029448292676,"24":0.04631770374273657,"30":0.03772785705469193,"36":0.032008926576462995,"42":0.027926055528037123,"48":0.02487416455198194,"60":0.020606224540069364,"72":0.017770734970773524},
+      {"18":0.060505007341988534,"24":0.046177290147490224,"30":0.037586962825749054,"36":0.0318624994333184,"42":0.027783352226386983,"48":0.0247255469419726,"60":0.020455095903052695,"72":0.01762190294864173},
+      {"18":0.06034120666645342,"24":0.046013780926135166,"30":0.03742296946588965,"36":0.031697644976582375,"42":0.027617400233973823,"48":0.024558372704934595,"60":0.02028523776117378,"72":0.01744917111074752},
+      {"18":0.06031782676828709,"24":0.04599044943641799,"30":0.03739957555400811,"36":0.031674134758552526,"42":0.027593739894417,"48":0.024534544388308918,"60":0.02026103914866092,"72":0.017419658019296087},
+      {"18":0.0602196863571604,"24":0.045892530840006725,"30":0.0373014132008619,"36":0.03157550225068265,"42":0.027494495107416507,"48":0.02443461222541564,"60":0.02015958763749034,"72":0.017321488666541728}
+    ],
+    "5": [
+      {"18":0.06133243635728415,"24":0.04686291613672578,"30":0.03819022176601752,"36":0.03241717277461937,"42":0.028294262305053337,"48":0.025211646207336562,"60":0.020905475263738777,"72":0.01804544902282239},
+      {"18":0.061238096003919835,"24":0.04676865577435639,"30":0.03809559943064971,"36":0.03232672240822241,"42":0.028131334438284635,"48":0.025110126434113943,"60":0.020802175216751984,"72":0.017945275650017536},
+      {"18":0.06109202761552604,"24":0.04662276474514517,"30":0.03794920042253713,"36":0.032174713588035316,"42":0.028050073880890775,"48":0.024965507378765562,"60":0.02065511235889818,"72":0.017790633282472476},
+      {"18":0.06099789267354568,"24":0.04652877868899801,"30":0.03785492091749702,"36":0.03207518209328547,"42":0.02795464696013011,"48":0.02486936239284307,"60":0.0205574033514219,"72":0.017691268838297972},
+      {"18":0.060903838337254296,"24":0.04643490028678361,"30":0.03775607226575592,"36":0.0319805555640808,"42":0.027859407989321263,"48":0.024768640892903364,"60":0.020455095903052695,"72":0.017572451391964717}
+    ]
+  },
+  "trimestrale": {
+    "2": [
+      {"18":0.019824959601232657,"24":0.01513954009084884,"30":0.012332840242131915,"36":0.010462708171453604,"42":0.009128678998927464,"48":0.008129036283234439,"60":0.006734343571645057,"72":0.005809830841308687},
+      {"18":0.019780145809310142,"24":0.01509325668829909,"30":0.012284855672356057,"36":0.010416005495403996,"42":0.009081648338709657,"48":0.008083217818965472,"60":0.006687747232625334,"72":0.005760770143521069},
+      {"18":0.019715343856878998,"24":0.015031671781556122,"30":0.012224641864750474,"36":0.010353924462142445,"42":0.009019161209555334,"48":0.008020267793607148,"60":0.006622190355744761,"72":0.005695729201806728},
+      {"18":0.019699932402554507,"24":0.015016298119493843,"30":0.012209230062667262,"36":0.010338438014126832,"42":0.00900202144926191,"48":0.008004575232946728,"60":0.006606257939699115,"72":0.005679535748674341},
+      {"18":0.01965219988811412,"24":0.014968697156040276,"30":0.0121615252030237,"36":0.010292059872176745,"42":0.008956926278848693,"48":0.007956042659386235,"60":0.006558595142621105,"72":0.005629506099039818}
+    ],
+    "3": [
+      {"18":0.020020327115396603,"24":0.015289744810133432,"30":0.012454054277192247,"36":0.010565881658860792,"42":0.009218427090180625,"48":0.008209979417414809,"60":0.006802160501694365,"72":0.005867370923703246},
+      {"18":0.019973713883230708,"24":0.01524319923720722,"30":0.012407352472437126,"36":0.010518911777780427,"42":0.00917112761713789,"48":0.00816230935660302,"60":0.006753679716220306,"72":0.005818030917485059},
+      {"18":0.019832691860033336,"24":0.01510250687549172,"30":0.01226631007861189,"36":0.01037717949754271,"42":0.009030078260497794,"48":0.008018697728112107,"60":0.006607850173425178,"72":0.005669832514471631},
+      {"18":0.019894610712975023,"24":0.015165803371517142,"30":0.01232974119596552,"36":0.010440898460885051,"42":0.00909260949178746,"48":0.008083217818965472,"60":0.00667172308685201,"72":0.005734702515997305},
+      {"18":0.019846614181392677,"24":0.015117931069602375,"30":0.012281763612708621,"36":0.0103926997581313,"42":0.0090441258150917,"48":0.00803440647547927,"60":0.006623784829000002,"72":0.0056860099211909305}
+    ]
+  }
+};
+
+const DURATIONS = [18, 24, 30, 36, 42, 48, 60, 72];
+
+// Determina la fascia di importo (0-4 in base agli intervalli)
+function bandIndex(v){
+  if(v <= 10000) return 0;       // 1.000 - 10.000
+  if(v <= 25000) return 1;       // 10.001 - 25.000
+  if(v <= 50000) return 2;       // 25.001 - 50.000
+  if(v <= 100000) return 3;      // 50.001 - 100.000
+  if(v <= 250000) return 4;      // 100.001 - 250.000
+  return -1;
+}
+
+let state = { periodicita:'MENSILE', prov:'3', selectedDuration:36 };
+
+const eur = n => n.toLocaleString('it-IT',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
+
+function speseIstruttoria(v){
+  if(v>250000) return null;
+  if(v<=100000) return 0;
+  return 150;
+}
+function impegnoRiacquisto(v){
+  if(v<1000 || v>250000) return null;
+  return round2(0.01*v);
+}
+function round2(n){return Math.round(n*100)/100;}
+
+function render(){
+  const valInput = document.getElementById('valore');
+  let v = parseFloat(valInput.value);
+  if(isNaN(v)) v = 0;
+
+  const warnBox = document.getElementById('warnBox');
+  const resultsCard = document.getElementById('resultsCard');
+
+  if(v>250000){
+    warnBox.style.display='block';
+    warnBox.innerHTML = 'Per importi superiori a &euro;250.000 il calcolo automatico non è disponibile: richiedere offerta ad hoc via mail.';
+    resultsCard.style.display='none';
+    return;
+  }
+  if(v<1000){
+    warnBox.style.display='block';
+    warnBox.innerHTML = 'Il valore contratto minimo è &euro;1.000.';
+    resultsCard.style.display='none';
+    return;
+  }
+  warnBox.style.display='none';
+  resultsCard.style.display='block';
+
+  document.getElementById('periodBadge').textContent = state.periodicita==='MENSILE' ? 'Canoni Mensili' : 'Canoni Trimestrali';
+  document.getElementById('canoneHeader').textContent = state.periodicita==='MENSILE' ? 'Canone Mensile (IVA escl.)' : 'Canone Trimestrale (IVA escl.)';
+
+  const bandIdx = bandIndex(v);
+  const periodo = state.periodicita==='MENSILE' ? 'mensile' : 'trimestrale';
+  const coefficienti = RATES_COEFFS[periodo][state.prov][bandIdx];
+
+  const tbody = document.getElementById('ratesBody');
+  tbody.innerHTML='';
+  DURATIONS.forEach(d=>{
+    // Ottieni il coefficiente per questa durata
+    const coeff = coefficienti[String(d)];
+    // Calcola il canone moltiplicando importo × coefficiente
+    const canone = round2(v * coeff);
+    // Numero di canoni: per mensile è la durata, per trimestrale è durata/3
+    const nCanoni = state.periodicita==='MENSILE' ? d : d/3;
+    // Totale spesa cliente
+    const totale = round2(canone * nCanoni);
+    const isSel = d===state.selectedDuration;
+    const tr = document.createElement('tr');
+    if(isSel) tr.className='selected';
+    tr.innerHTML = `
+      <td class="pick no-print"><input type="radio" class="radiopick" name="durpick" ${isSel?'checked':''} data-d="${d}"></td>
+      <td>${d} mesi${d===72?' *':''}</td>
+      <td>${nCanoni}</td>
+      <td class="canone-val">${eur(canone)}</td>
+      <td class="totale-cell">${eur(totale)}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  tbody.querySelectorAll('.radiopick').forEach(r=>{
+    r.addEventListener('change', e=>{
+      state.selectedDuration = parseInt(e.target.getAttribute('data-d'));
+      render();
+    });
+  });
+  tbody.querySelectorAll('tr').forEach(trEl=>{
+    trEl.style.cursor='pointer';
+    trEl.addEventListener('click', ()=>{
+      const radio = trEl.querySelector('.radiopick');
+      if(radio && !radio.checked){
+        state.selectedDuration = parseInt(radio.getAttribute('data-d'));
+        render();
+      }
+    });
+  });
+
+  // Calcola il canone per la durata selezionata
+  const selCoeff = coefficienti[String(state.selectedDuration)];
+  const selCanone = round2(v * selCoeff);
+  const selN = state.periodicita==='MENSILE' ? state.selectedDuration : state.selectedDuration/3;
+  const selTot = round2(selCanone * selN);
+  document.getElementById('summaryBox').innerHTML = `
+    <div class="row"><span>Proposta selezionata</span><span>${state.selectedDuration} mesi &mdash; ${state.periodicita.toLowerCase()}</span></div>
+    <div class="row"><span>Canone per periodo (IVA escl.)</span><span>${eur(selCanone)}</span></div>
+    <div class="row"><span>Numero Canoni Posticipati</span><span>${selN}</span></div>
+    <div class="row total totale-cell"><span>Totale spesa cliente (IVA escl.)</span><span>${eur(selTot)}</span></div>
+  `;
+
+  const si = speseIstruttoria(v);
+  const ir = impegnoRiacquisto(v);
+
+  document.getElementById('boxIstruttoria').textContent = si===null?'Quotazione personalizzata':(si===0?'Nessuna':eur(si));
+  document.getElementById('boxIncasso').textContent = 'Nessuna';
+
+  document.getElementById('infoList').innerHTML = `
+    <li><span class="lbl">Valore contratto (IVA escl.)</span><span class="val">${eur(v)}</span></li>
+    <li class="impegno-row"><span class="lbl">Impegno riacquisto fornitore (1%)</span><span class="val">${ir===null?'Quotazione personalizzata':eur(ir)}</span></li>
+    <li><span class="lbl">Assicurazione All Risk</span><span class="val">Compresa nei canoni, a cura e carico dell'Ente Concedente</span></li>
+  `;
+}
+
+document.getElementById('periodToggle').addEventListener('click', e=>{
+  const t = e.target.closest('div[data-v]');
+  if(!t) return;
+  state.periodicita = t.getAttribute('data-v');
+  document.querySelectorAll('#periodToggle div').forEach(d=>d.classList.remove('active'));
+  t.classList.add('active');
+  render();
+});
+
+document.getElementById('provOptions').addEventListener('click', e=>{
+  const t = e.target.closest('div[data-v]');
+  if(!t) return;
+  state.prov = t.getAttribute('data-v');
+  document.querySelectorAll('#provOptions .prov-btn').forEach(d=>d.classList.remove('active'));
+  t.classList.add('active');
+  render();
+});
+
+document.getElementById('valore').addEventListener('input', render);
+
+document.getElementById('resetBtn').addEventListener('click', ()=>{
+  document.getElementById('clienteNome').value='';
+  document.getElementById('clienteRef').value='';
+  document.getElementById('agente').value='';
+  document.getElementById('descrBene').value='';
+  document.getElementById('valore').value=10000;
+  state = { periodicita:'MENSILE', prov:'3', selectedDuration:36 };
+  document.querySelectorAll('#periodToggle div').forEach((d,i)=>d.classList.toggle('active', i===0));
+  document.querySelectorAll('#provOptions .prov-btn').forEach(d=>d.classList.toggle('active', d.getAttribute('data-v')==='3'));
+  currentArchiveId = null;
+  render();
+});
+
+(function(){
+  const d = new Date();
+  document.getElementById('dataPrev').value = d.toISOString().slice(0,10);
+})();
+
+function stampaFornitore(){
+  // Esegui la stampa in modo asincrono senza bloccare
+  try {
+    archiviaPreventivo('Fornitore');
+  } catch(e) {
+    console.warn('Errore nel salvataggio archivio:', e);
+  }
+  document.body.classList.remove('printing-cliente');
+  document.body.classList.add('printing-fornitore');
+  setTimeout(()=>window.print(), 100);
+}
+function stampaCliente(){
+  // Esegui la stampa in modo asincrono senza bloccare
+  try {
+    archiviaPreventivo('Cliente');
+  } catch(e) {
+    console.warn('Errore nel salvataggio archivio:', e);
+  }
+  document.body.classList.remove('printing-fornitore');
+  document.body.classList.add('printing-cliente');
+  setTimeout(()=>window.print(), 100);
+}
+window.addEventListener('afterprint', ()=>{
+  document.body.classList.remove('printing-fornitore','printing-cliente');
+});
+
+/* ================= ARCHIVIO PREVENTIVI ================= */
+const ARCHIVE_KEY = 'noleggio_preventivi_archivio_v1';
+let currentArchiveId = null;
+
+function escapeHtml(s){
+  return String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function formatDateIt(s){
+  if(!s) return '';
+  const parts = s.split('-');
+  if(parts.length!==3) return s;
+  return `${parts[2]}/${parts[1]}/${parts[0]}`;
+}
+function loadArchive(){
+  try{
+    const raw = localStorage.getItem(ARCHIVE_KEY);
+    const list = raw ? JSON.parse(raw) : [];
+    return Array.isArray(list) ? list : [];
+  }catch(e){ return []; }
+}
+function saveArchiveList(list){
+  try{ localStorage.setItem(ARCHIVE_KEY, JSON.stringify(list)); return true; }
+  catch(e){ return false; }
+}
+function collectCurrentQuote(){
+  return {
+    id: currentArchiveId || (Date.now() + '_' + Math.random().toString(36).slice(2,8)),
+    savedAt: new Date().toISOString(),
+    clienteNome: document.getElementById('clienteNome').value.trim(),
+    clienteRef: document.getElementById('clienteRef').value.trim(),
+    agente: document.getElementById('agente').value.trim(),
+    dataPrev: document.getElementById('dataPrev').value,
+    descrBene: document.getElementById('descrBene').value.trim(),
+    valore: parseFloat(document.getElementById('valore').value) || 0,
+    periodicita: state.periodicita,
+    prov: state.prov,
+    selectedDuration: state.selectedDuration
+  };
+}
+
+function archiviaPreventivo(tipoStampa){
+  const q = collectCurrentQuote();
+  const list = loadArchive();
+  const idx = list.findIndex(x=>x.id===q.id);
+  const now = new Date().toISOString();
+  if(idx>=0){
+    q.creatoIl = list[idx].creatoIl || list[idx].savedAt;
+    q.stampe = Array.from(new Set([...(list[idx].stampe||[]), tipoStampa]));
+    q.ultimaStampa = now;
+    list[idx] = q;
+  } else {
+    q.creatoIl = q.savedAt;
+    q.stampe = [tipoStampa];
+    q.ultimaStampa = now;
+    list.unshift(q);
+  }
+  const ok = saveArchiveList(list);
+  if(ok){
+    currentArchiveId = q.id;
+    renderArchive();
+  }
+}
+
+function apriPreventivo(id){
+  const list = loadArchive();
+  const q = list.find(x=>String(x.id)===String(id));
+  if(!q){
+    alert('Preventivo non trovato in archivio (potrebbe essere stato eliminato).');
+    return;
+  }
+  document.getElementById('clienteNome').value = q.clienteNome || '';
+  document.getElementById('clienteRef').value = q.clienteRef || '';
+  document.getElementById('agente').value = q.agente || '';
+  document.getElementById('dataPrev').value = q.dataPrev || '';
+  document.getElementById('descrBene').value = q.descrBene || '';
+  document.getElementById('valore').value = q.valore || 10000;
+
+  state = { periodicita: q.periodicita || 'MENSILE', prov: q.prov || '3', selectedDuration: q.selectedDuration || 36 };
+  document.querySelectorAll('#periodToggle div').forEach(d=>d.classList.toggle('active', d.getAttribute('data-v')===state.periodicita));
+  document.querySelectorAll('#provOptions .prov-btn').forEach(d=>d.classList.toggle('active', d.getAttribute('data-v')===state.prov));
+
+  currentArchiveId = q.id;
+  render();
+
+  const target = document.getElementById('datiPreventivoCard');
+  if(target){
+    target.scrollIntoView({behavior:'smooth', block:'start'});
+    target.classList.remove('flash-loaded');
+    void target.offsetWidth;
+    target.classList.add('flash-loaded');
+  }
+}
+
+function eliminaPreventivo(id){
+  if(!confirm('Eliminare questo preventivo dall\'archivio? L\'operazione non è reversibile.')) return;
+  let list = loadArchive();
+  list = list.filter(x=>x.id!==id);
+  saveArchiveList(list);
+  if(currentArchiveId===id){ currentArchiveId = null; }
+  renderArchive();
+}
+
+function svuotaArchivio(){
+  if(!confirm('Svuotare completamente l\'archivio dei preventivi salvati su questo dispositivo? L\'operazione non è reversibile.')) return;
+  saveArchiveList([]);
+  currentArchiveId = null;
+  renderArchive();
+}
+
+function renderArchive(){
+  const container = document.getElementById('archiveList');
+  if(!container) return;
+  const q = (document.getElementById('archiveSearch').value || '').trim().toLowerCase();
+  let list = loadArchive();
+
+  if(!q){
+    const tot = list.length;
+    container.innerHTML = tot===0
+      ? '<div class="archive-empty">Nessun preventivo ancora archiviato.</div>'
+      : `<div class="archive-empty">${tot} preventiv${tot===1?'o':'i'} in archivio. Digita un nome cliente o fornitore per cercare.</div>`;
+    return;
+  }
+
+  list.sort((a,b)=> new Date(b.savedAt) - new Date(a.savedAt));
+  list = list.filter(x=>
+    (x.clienteNome||'').toLowerCase().includes(q) ||
+    (x.agente||'').toLowerCase().includes(q)
+  );
+  if(list.length===0){
+    container.innerHTML = '<div class="archive-empty">Nessun preventivo trovato.</div>';
+    return;
+  }
+  container.innerHTML = list.map(item=>{
+    const titolo = [item.clienteNome, item.agente].filter(Boolean).join(' · ') || 'Preventivo senza nome';
+    const durataLabel = item.periodicita==='MENSILE' ? 'Mensile' : 'Trimestrale';
+    const stampeLabel = (item.stampe && item.stampe.length) ? 'Stampato per ' + item.stampe.join(' e ') : '';
+    const sub = `${formatDateIt(item.dataPrev)} &middot; ${eur(item.valore||0)} &middot; ${durataLabel} &middot; ${item.selectedDuration} mesi${stampeLabel ? ' &middot; ' + stampeLabel : ''}`;
+    return `<div class="archive-item">
+      <div class="ai-info">
+        <div class="ai-title">${escapeHtml(titolo)}</div>
+        <div class="ai-sub">${sub}</div>
+      </div>
+      <div class="ai-actions">
+        <button type="button" class="open-btn" onclick="apriPreventivo('${item.id}')">Apri</button>
+        <button type="button" class="del-btn" onclick="eliminaPreventivo('${item.id}')">Elimina</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function esportaArchivio(){
+  const list = loadArchive();
+  const blob = new Blob([JSON.stringify(list, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'archivio_preventivi_' + new Date().toISOString().slice(0,10) + '.json';
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+function importaArchivio(input){
+  const file = input.files && input.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    try{
+      const imported = JSON.parse(e.target.result);
+      if(!Array.isArray(imported)) throw new Error('formato non valido');
+      const existing = loadArchive();
+      let added = 0;
+      imported.forEach(item=>{
+        if(item && item.id && !existing.some(x=>x.id===item.id)){ existing.push(item); added++; }
+      });
+      saveArchiveList(existing);
+      renderArchive();
+      alert('Importazione completata: ' + added + ' preventivi aggiunti su ' + imported.length + ' trovati nel file.');
+    }catch(err){
+      alert('File non valido: impossibile importare questo backup.');
+    }
+  };
+  reader.readAsText(file);
+  input.value = '';
+}
+
+document.getElementById('archiveSearch').addEventListener('input', renderArchive);
+
+render();
+renderArchive();
+</script>
+</body>
+</html>
