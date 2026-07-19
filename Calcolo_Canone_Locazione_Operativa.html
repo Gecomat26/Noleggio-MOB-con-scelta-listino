@@ -434,7 +434,16 @@ function bandIndex(v){
 
 let state = { periodicita:'MENSILE', prov:'3', selectedDuration:36 };
 
-const eur = n => n.toLocaleString('it-IT',{style:'currency',currency:'EUR',minimumFractionDigits:2,maximumFractionDigits:2});
+const eur = n => {
+  const num = parseFloat(n);
+  return num.toLocaleString('it-IT', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+    useGrouping: true
+  });
+};
 
 function speseIstruttoria(v){
   if(v>250000) return null;
